@@ -735,7 +735,10 @@ const extendWithSystemFields = <
 ) =>
 	Schema.extend(
 		schema,
-		Schema.Struct({ _id: SchemaId<TableName>(), _creationTime: Schema.Number }),
+		Schema.Struct({
+			_id: SchemaId<TableName>(_tableName),
+			_creationTime: Schema.Number,
+		}),
 	);
 
 const decodeDocument = <
