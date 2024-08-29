@@ -1,4 +1,5 @@
-import type { AST, ParseResult } from "@effect/schema";
+import { AST } from "@effect/schema";
+import type { ParseResult } from "@effect/schema";
 import * as Schema from "@effect/schema/Schema";
 import type {
 	GenericId,
@@ -30,6 +31,7 @@ import type {
 	IsValueLiteral,
 	UnionToTuple,
 } from "~/src/type-utils";
+import { ConvexTableName } from "./SchemaId";
 
 // Args
 
@@ -238,7 +240,15 @@ export const compileAst = (ast: AST.AST): Validator<any, any, any> =>
 			),
 		),
 		Match.tag("BooleanKeyword", () => Effect.succeed(v.boolean())),
-		Match.tag("StringKeyword", () => Effect.succeed(v.string())),
+		Match.tag("StringKeyword", (ast) =>
+			AST.getAnnotation<string>(ConvexTableName)(ast).pipe(
+				Option.match({
+					onNone: () => v.string(),
+					onSome: (name) => v.id(name),
+				}),
+				Effect.succeed,
+			),
+		),
 		Match.tag("NumberKeyword", () => Effect.succeed(v.float64())),
 		Match.tag("BigIntKeyword", () => Effect.succeed(v.int64())),
 		Match.tag("Union", ({ types: [first, second, ...rest] }) =>
